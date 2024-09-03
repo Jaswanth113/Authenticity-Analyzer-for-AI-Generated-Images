@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+
+\begin{document}
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[scale=0.8, transform shape]
+        % Input layer
+        \node[draw, circle, minimum size=0.6cm] (input) at (0,0) {Input};
+        
+        % Convolutional layers
+        \foreach \i/\o/\n/\s/\t in {1/32/Conv2D-1/5x5/Valid, 2/32/Conv2D-2/5x5/Valid} {
+            \pgfmathtruncatemacro{\prev}{\i - 1}
+            \pgfmathsetmacro{\x}{\i * 2}
+            \node[draw, rectangle, minimum width=2cm, minimum height=1.5cm, align=center] (\n) at (\x,0) {Conv2D \\ Filters: \o \\ Kernel: \s \\ Padding: \t};
+            \draw[-{Latex[length=3mm]}] (Conv2D-\prev) -- (Conv2D-\i);
+        }
+        
+        % MaxPool layers
+        \foreach \i/\o in {1/1, 2/2} {
+            \pgfmathsetmacro{\x}{\i * 2 + 0.5}
+            \node[draw, rectangle, minimum width=1cm, minimum height=1cm, align=center] (MaxPool-\i) at (\x,-2) {MaxPool};
+            \draw[-{Latex[length=3mm]}] (Conv2D-\i) -- (MaxPool-\i);
+        }
+        
+        % Dropout layers
+        \foreach \i in {1,2} {
+            \pgfmathsetmacro{\x}{\i * 2 + 0.5}
+            \node[draw, rectangle, minimum width=1cm, minimum height=1cm, align=center] (Dropout-\i) at (\x,-3.5) {Dropout};
+            \draw[-{Latex[length=3mm]}] (MaxPool-\i) -- (Dropout-\i);
+        }
+        
+        % Flatten layer
+        \node[draw, rectangle, minimum width=2cm, minimum height=1cm, align=center] (Flatten) at (5,-5) {Flatten};
+        \draw[-{Latex[length=3mm]}] (Dropout-2) -- (Flatten);
+        
+        % Dense layers
+        \foreach \i/\n in {1/256, 2/2} {
+            \pgfmathsetmacro{\x}{\i * 2 + 0.5}
+            \node[draw, rectangle, minimum width=2cm, minimum height=1cm, align=center] (Dense-\i) at (\x,-6.5) {Dense \\ Units: \n};
+            \draw[-{Latex[length=3mm]}] (Flatten) -- (Dense-\i);
+        }
+        
+        % Output layer
+        \node[draw, circle, minimum size=0.6cm] (output) at (8,-8) {Output};
+        \draw[-{Latex[length=3mm]}] (Dense-2) -- (output);
+        
+        % Connect input to first Conv2D layer
+        \draw[-{Latex[length=3mm]}] (input) -- (Conv2D-1);
+        
+    \end{tikzpicture}
+    \caption{CNN Architecture}
+    \label{fig:cnn_architecture}
+\end{figure}
+\end{document}
